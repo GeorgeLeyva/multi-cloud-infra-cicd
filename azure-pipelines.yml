@@ -1,6 +1,5 @@
 # Azure DevOps CI/CD pipeline for Terraform validation and governance
-# This pipeline is intentionally validation-only.
-# Infrastructure apply actions are gated outside CI/CD.
+# Validation-only pipeline with remote backend and workload identity federation
 
 trigger: none
 
@@ -25,23 +24,30 @@ stages:
     steps:
     - checkout: self
 
+    # Azure login using workload identity federation
+    - task: AzureCLI@2
+      displayName: Azure Login (OIDC)
+      inputs:
+        azureSubscription: azure-terraform-plan
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          echo "Logged into Azure using federated identity"
+
     - task: TerraformInstaller@1
       displayName: Install Terraform
       inputs:
         terraformVersion: '1.5.7'
 
-    - script: |
-        terraform init
+    - script: terraform init
       displayName: Terraform Init (Remote Backend)
       workingDirectory: $(terraformWorkingDir)
 
-    - script: |
-        terraform fmt -check -recursive
+    - script: terraform fmt -check -recursive
       displayName: Terraform Format Check
       workingDirectory: $(terraformWorkingDir)
 
-    - script: |
-        terraform validate
+    - script: terraform validate
       displayName: Terraform Validate
       workingDirectory: $(terraformWorkingDir)
 
@@ -54,18 +60,26 @@ stages:
     steps:
     - checkout: self
 
+    # Azure login again (new job = new context)
+    - task: AzureCLI@2
+      displayName: Azure Login (OIDC)
+      inputs:
+        azureSubscription: azure-terraform-plan
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          echo "Logged into Azure using federated identity"
+
     - task: TerraformInstaller@1
       displayName: Install Terraform
       inputs:
         terraformVersion: '1.5.7'
 
-    - script: |
-        terraform init
+    - script: terraform init
       displayName: Terraform Init (Remote Backend)
       workingDirectory: $(terraformWorkingDir)
 
-    - script: |
-        terraform plan -out=tfplan
+    - script: terraform plan -out=tfplan
       displayName: Terraform Plan
       workingDirectory: $(terraformWorkingDir)
 
