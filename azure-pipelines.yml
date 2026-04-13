@@ -1,7 +1,8 @@
-trigger:
-  branches:
-    include:
-      - main
+# Azure DevOps CI/CD pipeline for Terraform validation and governance
+# This pipeline is intentionally validation-only.
+# Infrastructure apply actions are gated outside CI/CD.
+
+trigger: none
 
 pr:
   branches:
@@ -15,10 +16,12 @@ variables:
   terraformWorkingDir: terraform/azure
 
 stages:
+
 - stage: Validate
   displayName: Terraform Validate
   jobs:
   - job: terraform_validate
+    displayName: Terraform Validation
     steps:
     - checkout: self
 
@@ -27,30 +30,27 @@ stages:
       inputs:
         terraformVersion: '1.5.7'
 
-    - script: terraform fmt -check
+    - script: |
+        terraform init
+      displayName: Terraform Init (Remote Backend)
       workingDirectory: $(terraformWorkingDir)
+
+    - script: |
+        terraform fmt -check -recursive
       displayName: Terraform Format Check
+      workingDirectory: $(terraformWorkingDir)
 
-    - task: TerraformTaskV4@4
-      displayName: Terraform Init
-      inputs:
-        provider: azurerm
-        command: init
-        backendServiceArm: azure-terraform-plan
-        workingDirectory: $(terraformWorkingDir)
-
-    - task: TerraformTaskV4@4
+    - script: |
+        terraform validate
       displayName: Terraform Validate
-      inputs:
-        provider: azurerm
-        command: validate
-        workingDirectory: $(terraformWorkingDir)
+      workingDirectory: $(terraformWorkingDir)
 
 - stage: Plan
   displayName: Terraform Plan
   dependsOn: Validate
   jobs:
   - job: terraform_plan
+    displayName: Terraform Plan Generation
     steps:
     - checkout: self
 
@@ -59,22 +59,16 @@ stages:
       inputs:
         terraformVersion: '1.5.7'
 
-    - task: TerraformTaskV4@4
-      displayName: Terraform Init
-      inputs:
-        provider: azurerm
-        command: init
-        backendServiceArm: azure-terraform-plan
-        workingDirectory: $(terraformWorkingDir)
+    - script: |
+        terraform init
+      displayName: Terraform Init (Remote Backend)
+      workingDirectory: $(terraformWorkingDir)
 
-    - task: TerraformTaskV4@4
+    - script: |
+        terraform plan -out=tfplan
       displayName: Terraform Plan
-      inputs:
-        provider: azurerm
-        command: plan
-        commandOptions: '-out=tfplan'
-        backendServiceArm: azure-terraform-plan
-        workingDirectory: $(terraformWorkingDir)
+      workingDirectory: $(terraformWorkingDir)
 
     - publish: $(terraformWorkingDir)/tfplan
+      displayName: Publish Terraform Plan Artifact
       artifact: terraform-plan
