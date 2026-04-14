@@ -27,7 +27,6 @@ stages:
     steps:
     - checkout: self
 
-    # Azure login using workload identity federation
     - task: AzureCLI@2
       displayName: Azure Login (OIDC)
       inputs:
@@ -35,7 +34,6 @@ stages:
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
-          echo "Azure CLI logged in via workload identity federation"
           az account show
 
     - task: TerraformInstaller@1
@@ -44,13 +42,14 @@ stages:
         terraformVersion: '1.5.7'
 
     - script: terraform init
-      displayName: Terraform Init (Remote Backend)
+      displayName: Terraform Init
       workingDirectory: $(terraformWorkingDir)
       env:
         ARM_USE_OIDC: true
         ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
         ARM_TENANT_ID: $(AZURE_TENANT_ID)
         ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        ARM_OIDC_TOKEN_FILE: $(AZURE_FEDERATED_TOKEN_FILE)
 
     - script: terraform fmt -check -recursive
       displayName: Terraform Format Check
@@ -64,6 +63,7 @@ stages:
         ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
         ARM_TENANT_ID: $(AZURE_TENANT_ID)
         ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        ARM_OIDC_TOKEN_FILE: $(AZURE_FEDERATED_TOKEN_FILE)
 
 # -------------------------
 # PLAN STAGE
@@ -77,7 +77,6 @@ stages:
     steps:
     - checkout: self
 
-    # Azure login required again because jobs run in isolated agents
     - task: AzureCLI@2
       displayName: Azure Login (OIDC)
       inputs:
@@ -85,7 +84,6 @@ stages:
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
-          echo "Azure CLI logged in via workload identity federation"
           az account show
 
     - task: TerraformInstaller@1
@@ -94,13 +92,14 @@ stages:
         terraformVersion: '1.5.7'
 
     - script: terraform init
-      displayName: Terraform Init (Remote Backend)
+      displayName: Terraform Init
       workingDirectory: $(terraformWorkingDir)
       env:
         ARM_USE_OIDC: true
         ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
         ARM_TENANT_ID: $(AZURE_TENANT_ID)
         ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        ARM_OIDC_TOKEN_FILE: $(AZURE_FEDERATED_TOKEN_FILE)
 
     - script: terraform plan -out=tfplan
       displayName: Terraform Plan
@@ -110,6 +109,7 @@ stages:
         ARM_CLIENT_ID: $(AZURE_CLIENT_ID)
         ARM_TENANT_ID: $(AZURE_TENANT_ID)
         ARM_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        ARM_OIDC_TOKEN_FILE: $(AZURE_FEDERATED_TOKEN_FILE)
 
     - publish: $(terraformWorkingDir)/tfplan
       displayName: Publish Terraform Plan Artifact
