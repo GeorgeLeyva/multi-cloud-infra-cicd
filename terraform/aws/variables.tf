@@ -1,5 +1,5 @@
-variable "environment" {
-  description = "Environment name"
+variable "region" {
+  description = "AWS region"
   type        = string
-  default     = "demo"
+  default     = "us-west-2"
 }

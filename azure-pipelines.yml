@@ -63,3 +63,44 @@ stages:
 
     - publish: $(terraformWorkingDir)/tfplan
       artifact: terraform-plan
+
+
+
+      # -------------------------
+# AWS PLAN STAGE
+# -------------------------
+- stage: Plan_AWS
+  displayName: Terraform Plan (AWS)
+  dependsOn: Validate
+  jobs:
+  - job: terraform_plan_aws
+    displayName: Terraform Plan AWS
+    variables:
+      - group: aws-terraform-ci
+    steps:
+    - checkout: self
+
+    - task: TerraformInstaller@1
+      displayName: Install Terraform
+      inputs:
+        terraformVersion: '1.5.7'
+
+    - task: AzureCLI@2
+      displayName: Terraform Plan (AWS)
+      inputs:
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          cd terraform/aws
+          terraform init
+          terraform fmt -check -recursive
+          terraform validate
+          terraform plan -out=tfplan
+      env:
+        AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+        AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+        AWS_DEFAULT_REGION: $(AWS_DEFAULT_REGION)
+
+    - publish: terraform/aws/tfplan
+      displayName: Publish Terraform Plan Artifact (AWS)
+      artifact: terraform-plan-aws
