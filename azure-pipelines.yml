@@ -1,5 +1,6 @@
 # Azure DevOps CI/CD pipeline for Terraform validation and governance
-# Validation-only pipeline with remote backend and workload identity federation
+# Validation-only pipeline using Terraform CLI and Azure OIDC authentication
+# Infrastructure apply actions are intentionally excluded
 
 trigger: none
 
@@ -16,6 +17,9 @@ variables:
 
 stages:
 
+# -------------------------
+# VALIDATE STAGE
+# -------------------------
 - stage: Validate
   displayName: Terraform Validate
   jobs:
@@ -24,7 +28,7 @@ stages:
     steps:
     - checkout: self
 
-    # Azure login using workload identity federation
+    # Authenticate to Azure using workload identity federation
     - task: AzureCLI@2
       displayName: Azure Login (OIDC)
       inputs:
@@ -32,7 +36,7 @@ stages:
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
-          echo "Logged into Azure using federated identity"
+          echo "Authenticated to Azure using workload identity federation"
 
     - task: TerraformInstaller@1
       displayName: Install Terraform
@@ -42,6 +46,11 @@ stages:
     - script: terraform init
       displayName: Terraform Init (Remote Backend)
       workingDirectory: $(terraformWorkingDir)
+      env:
+        ARM_USE_OIDC: true
+        ARM_CLIENT_ID: $(servicePrincipalId)
+        ARM_TENANT_ID: $(tenantId)
+        ARM_SUBSCRIPTION_ID: $(subscriptionId)
 
     - script: terraform fmt -check -recursive
       displayName: Terraform Format Check
@@ -50,7 +59,15 @@ stages:
     - script: terraform validate
       displayName: Terraform Validate
       workingDirectory: $(terraformWorkingDir)
+      env:
+        ARM_USE_OIDC: true
+        ARM_CLIENT_ID: $(servicePrincipalId)
+        ARM_TENANT_ID: $(tenantId)
+        ARM_SUBSCRIPTION_ID: $(subscriptionId)
 
+# -------------------------
+# PLAN STAGE
+# -------------------------
 - stage: Plan
   displayName: Terraform Plan
   dependsOn: Validate
@@ -60,7 +77,7 @@ stages:
     steps:
     - checkout: self
 
-    # Azure login again (new job = new context)
+    # Azure login is required again because each job runs in a new context
     - task: AzureCLI@2
       displayName: Azure Login (OIDC)
       inputs:
@@ -68,7 +85,7 @@ stages:
         scriptType: bash
         scriptLocation: inlineScript
         inlineScript: |
-          echo "Logged into Azure using federated identity"
+          echo "Authenticated to Azure using workload identity federation"
 
     - task: TerraformInstaller@1
       displayName: Install Terraform
@@ -78,10 +95,20 @@ stages:
     - script: terraform init
       displayName: Terraform Init (Remote Backend)
       workingDirectory: $(terraformWorkingDir)
+      env:
+        ARM_USE_OIDC: true
+        ARM_CLIENT_ID: $(servicePrincipalId)
+        ARM_TENANT_ID: $(tenantId)
+        ARM_SUBSCRIPTION_ID: $(subscriptionId)
 
     - script: terraform plan -out=tfplan
       displayName: Terraform Plan
       workingDirectory: $(terraformWorkingDir)
+      env:
+        ARM_USE_OIDC: true
+        ARM_CLIENT_ID: $(servicePrincipalId)
+        ARM_TENANT_ID: $(tenantId)
+        ARM_SUBSCRIPTION_ID: $(subscriptionId)
 
     - publish: $(terraformWorkingDir)/tfplan
       displayName: Publish Terraform Plan Artifact
