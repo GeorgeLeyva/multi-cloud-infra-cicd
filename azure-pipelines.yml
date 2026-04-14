@@ -9,9 +9,12 @@ pool:
   vmImage: ubuntu-latest
 
 
+
 variables:
   - group: aws-terraform-ci
-    terraformWorkingDir: terraform/azure
+  - name: terraformWorkingDir
+    value: terraform/azure
+
 
 stages:
 
