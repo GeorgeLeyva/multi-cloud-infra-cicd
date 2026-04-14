@@ -66,9 +66,8 @@ stages:
 
 
 
-      # -------------------------
-# AWS PLAN STAGE – Bash task (no AzureCLI)
-
+# -------------------------
+# AWS PLAN STAGE
 # -------------------------
 - stage: Plan_AWS
   displayName: Terraform Plan (AWS)
@@ -87,19 +86,19 @@ stages:
         terraformVersion: '1.5.7'
 
     - task: Bash@3
-  displayName: Terraform Plan (AWS)
-  inputs:
-    targetType: inline
-    script: |
-      cd terraform/aws
-      terraform init -reconfigure
-      terraform fmt -check -recursive
-      terraform validate
-      terraform plan -out=tfplan
-  env:
-    AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
-    AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
-    AWS_DEFAULT_REGION: $(AWS_DEFAULT_REGION)
+      displayName: Terraform Plan (AWS)
+      inputs:
+        targetType: inline
+        script: |
+          cd terraform/aws
+          terraform init -reconfigure
+          terraform fmt -check -recursive
+          terraform validate
+          terraform plan -out=tfplan
+      env:
+        AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+        AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+        AWS_DEFAULT_REGION: $(AWS_DEFAULT_REGION)
 
     - publish: terraform/aws/tfplan
       displayName: Publish Terraform Plan Artifact (AWS)
