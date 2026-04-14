@@ -67,7 +67,8 @@ stages:
 
 
       # -------------------------
-# AWS PLAN STAGE
+# AWS PLAN STAGE – Bash task (no AzureCLI)
+
 # -------------------------
 - stage: Plan_AWS
   displayName: Terraform Plan (AWS)
@@ -85,12 +86,11 @@ stages:
       inputs:
         terraformVersion: '1.5.7'
 
-    - task: AzureCLI@2
+    - task: Bash@3
       displayName: Terraform Plan (AWS)
       inputs:
-        scriptType: bash
-        scriptLocation: inlineScript
-        inlineScript: |
+        targetType: inline
+        script: |
           cd terraform/aws
           terraform init
           terraform fmt -check -recursive
