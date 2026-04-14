@@ -90,8 +90,15 @@ stages:
       inputs:
         targetType: inline
         script: |
+          set -e
           cd terraform/aws
-          terraform init -reconfigure
+
+          echo "Verifying AWS identity..."
+          aws sts get-caller-identity
+
+          echo "Initializing Terraform backend..."
+          terraform init -reconfigure -input=false
+
           terraform fmt -check -recursive
           terraform validate
           terraform plan -out=tfplan
