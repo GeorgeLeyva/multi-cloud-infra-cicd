@@ -33,8 +33,10 @@ stages:
         azureSubscription: azure-terraform-plan
         scriptType: bash
         scriptLocation: inlineScript
+        addSpnToEnvironment: true
         inlineScript: |
           az account show
+          echo "AZURE_TENANT_ID=$AZURE_TENANT_ID"
 
     - task: TerraformInstaller@1
       displayName: Install Terraform
@@ -83,8 +85,10 @@ stages:
         azureSubscription: azure-terraform-plan
         scriptType: bash
         scriptLocation: inlineScript
+        addSpnToEnvironment: true
         inlineScript: |
           az account show
+          echo "AZURE_TENANT_ID=$AZURE_TENANT_ID"
 
     - task: TerraformInstaller@1
       displayName: Install Terraform
