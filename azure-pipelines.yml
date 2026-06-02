@@ -62,12 +62,12 @@ stages:
         scriptType: bash
         scriptLocation: inlineScript
       inlineScript: |
-  set -e
-  cd terraform/aws
-  terraform init -reconfigure -input=false
-  terraform fmt -check -recursive
-  terraform validate
-  terraform plan -out=tfplan
+       set -e
+        cd terraform/aws
+        terraform init -reconfigure -input=false
+        terraform fmt -check -recursive
+        terraform validate
+        terraform plan -out=tfplan
 
 
     - publish: $(terraformWorkingDir)/tfplan
