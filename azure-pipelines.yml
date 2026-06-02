@@ -99,11 +99,13 @@ stages:
         regionName: us-west-2
         scriptType: bash
         inlineScript: |
-          set -e
+          set -ex
+            echo "Starting AWS Terraform..."
           cd terraform/aws
           terraform init -reconfigure -input=false
           terraform fmt -check -recursive
           terraform validate
+           echo "Running terraform plan..."
           terraform plan -out=tfplan
 
     - publish: terraform/aws/tfplan
