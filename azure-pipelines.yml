@@ -61,10 +61,15 @@ stages:
         azureSubscription: azure-terraform-plan
         scriptType: bash
         scriptLocation: inlineScript
-        inlineScript: |
-          cd $(terraformWorkingDir)
-          terraform init
-          terraform plan -out=tfplan
+      
+inlineScript: |
+  set -e
+  cd terraform/aws
+  terraform init -reconfigure -input=false
+  terraform fmt -check -recursive
+  terraform validate
+  terraform plan -out=tfpla
+
 
     - publish: $(terraformWorkingDir)/tfplan
       artifact: terraform-plan
