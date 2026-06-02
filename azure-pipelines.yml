@@ -98,14 +98,15 @@ stages:
         awsCredentials: aws-terraform-plan
         regionName: us-west-2
         scriptType: bash
+        scriptLocation: inline
         inlineScript: |
           set -ex
-            echo "Starting AWS Terraform..."
+          echo "Starting AWS Terraform..."
           cd terraform/aws
           terraform init -reconfigure -input=false
           terraform fmt -check -recursive
           terraform validate
-           echo "Running terraform plan..."
+          echo "Running terraform plan..."
           terraform plan -out=tfplan
 
     - publish: terraform/aws/tfplan
