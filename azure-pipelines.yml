@@ -68,7 +68,7 @@ inlineScript: |
   terraform init -reconfigure -input=false
   terraform fmt -check -recursive
   terraform validate
-  terraform plan -out=tfpla
+  terraform plan -out=tfplan
 
 
     - publish: $(terraformWorkingDir)/tfplan
