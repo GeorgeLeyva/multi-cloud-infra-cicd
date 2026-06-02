@@ -63,7 +63,7 @@ stages:
         scriptLocation: inlineScript
         inlineScript: |
           set -e
-          cd cd $(terraformWorkingDir)
+          cd $(terraformWorkingDir)
           terraform init -reconfigure -input=false
           terraform fmt -check -recursive
           terraform validate
