@@ -97,9 +97,10 @@ stages:
       inputs:
         awsCredentials: aws-terraform-plan
         regionName: us-west-2
-        scriptType: bash
-        scriptLocation: inline
+        scriptType: inline
+        scriptSource: inlineScript
         inlineScript: |
+          echo "HELLO FROM AWS SCRIPT ✅"
           set -ex
           echo "Starting AWS Terraform..."
           cd terraform/aws
