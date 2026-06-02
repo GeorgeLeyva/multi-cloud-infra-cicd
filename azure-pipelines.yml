@@ -61,8 +61,7 @@ stages:
         azureSubscription: azure-terraform-plan
         scriptType: bash
         scriptLocation: inlineScript
-      
-inlineScript: |
+      inlineScript: |
   set -e
   cd terraform/aws
   terraform init -reconfigure -input=false
